@@ -6,8 +6,9 @@ WHERE ID%2 = 0;
 select COUNT (CITY) - COUNT(DISTINCT (CITY) FROM STATION 
 
 --ex3
--- QUAY LAI LAM SAU 
-  
+SELECT CEILING (AVG(salary)-avg(replace(salary,'0','')))
+from EMPLOYEES;
+
 --ex4
 SELECT
 round (sum (item_count :: DECIMAL*order_occurrences)/sum (order_occurrences), 1) as mean
