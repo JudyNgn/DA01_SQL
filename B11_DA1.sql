@@ -70,7 +70,7 @@ FULL JOIN page_likes as t2
   ON t1.page_id=t2.page_id
 WHERE t2.liked_date is NULL
 ORDER BY t1.page_id;
-
+-----------------------------------------------------------------------------------
 --MIDCOURSE_TEST--
 --ex1
 select 
