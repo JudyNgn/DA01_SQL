@@ -123,5 +123,32 @@ group by actor.first_name, actor.last_name
 order by count (film_actor.film_id) desc
 
 --ex6
+SELECT COUNT(*) AS address_count
+FROM Address
+LEFT JOIN Customer ON Address.address_id = Customer.address_id
+WHERE Customer.address_id IS NULL;
+
+--ex7
+SELECT City.city, SUM(payment.amount) AS total_revenue
+FROM City
+JOIN Address ON City.city_id = Address.city_id
+JOIN Customer ON Address.address_id = Customer.address_id
+JOIN Payment ON Customer.customer_id = Payment.customer_id
+GROUP BY City.city
+ORDER BY total_revenue DESC;
+
+--ex8
+SELECT CONCAT(City.city, ', ', Country.country) AS city_country,
+       SUM(Payment.amount) AS total_revenue
+FROM City
+JOIN Country ON City.country_id = Country.country_id
+JOIN Address ON City.city_id = Address.city_id
+JOIN Customer ON Address.address_id = Customer.address_id
+JOIN Payment ON Customer.customer_id = Payment.customer_id
+GROUP BY city_country
+ORDER BY total_revenue desc -- tìm doanh thu cao nhất (dùng asc nếu tìm thấp nhất)
+LIMIT 1;
+
+
 
 
