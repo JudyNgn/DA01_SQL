@@ -83,9 +83,13 @@ ORDER BY month, country;
 --%m : Represents the month as a two-digit number 
 
 --ex7
-SELECT product_id, MIN(year) AS first_year, quantity, price
+SELECT product_id, year AS first_year, quantity, price
+FROM Sales
+WHERE (product_id, year) in (
+    SELECT product_id, MIN(year) 
     FROM Sales
-    GROUP BY product_id;
+    GROUP BY product_id
+)
 
 --ex8
 SELECT  customer_id 
