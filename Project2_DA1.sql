@@ -62,7 +62,7 @@ ORDER BY 1;
   -- Vẫn nên nghiên cứu sâu đối với những tháng có giá trị trung bình thay đổi nhiều để xem có sự thay đổi nào nổi bật trong xu hướng tiêu dùng 
   liên quan đến các dịp nhất định để mở rộng tiềm năng kinh doanh. 
 
-  --3. Tìm các khách hàng có trẻ tuổi nhất và lớn tuổi nhất theo từng giới tính (Từ 1/2019-4/2022)
+--3. Tìm các khách hàng có trẻ tuổi nhất và lớn tuổi nhất theo từng giới tính (Từ 1/2019-4/2022)
 -- Tạo bảng tạm YoungestOldestCustomers
 CREATE TEMP TABLE YoungestOldestCustomers AS (
     WITH MinMaxAges AS (
