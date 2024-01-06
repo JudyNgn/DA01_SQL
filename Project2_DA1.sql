@@ -212,6 +212,76 @@ Total_cost,
 from 
 ordergrowth
 
+--2. Tạo rentention cohort
+--join bang, check null 
+with new_table as (
+select 
+o.order_id,
+oi.user_id,
+oi.inventory_item_id,
+oi.created_at,
+oi.sale_price,
+o.num_of_item
+from brilliant-balm-410215.vw_ecommerce_analyst.orders as o
+join brilliant-balm-410215.vw_ecommerce_analyst.order_items as oi
+on o.user_id=oi.user_id
+where oi.user_id is not null and num_of_item >0)
+,
+--check dup
+main as (
+select * from (
+select *,
+row_number () over (partition by order_id,inventory_item_id, num_of_item order by created_at) as stt
+from new_table) as t
+where stt = 1)
+,
+--tao index
+index as (
+select user_id, amount, FORMAT_DATE('%Y-%m',created_at) as cohort_date, created_at,
+(extract (year from created_at) - extract (year from first_purchase_date))*12+ 
+(extract (month from created_at) - extract (month from first_purchase_date)) + 1 as indexs
+from
+(select 
+user_id,
+sale_price*num_of_item as amount,
+min (created_at) over (partition by user_id) as first_purchase_date,
+created_at
+from main ) as a)
+,
+xxx as (
+select 
+cohort_date,
+indexs,
+count (distinct user_id) as cnt,
+sum(amount) as revenue
+from index
+group by cohort_date,indexs)
+,
+--su dung pivot de tao cohort customer
+customer_cohort as (
+select 
+cohort_date,
+sum (case when indexs =1 then cnt else 0 end )as m1,
+sum (case when indexs =2 then cnt else 0 end )as m2,
+sum (case when indexs =3 then cnt else 0 end )as m3,
+sum (case when indexs =4 then cnt else 0 end )as m4
+from xxx
+group by cohort_date
+order by cohort_date)
 
+--tao rentention cohort
+select 
+cohort_date,
+concat (round (m1/m1*100,2), '%') as m1,
+concat (round (m2/m1*100,2),'%') as m2,
+concat (round (m3/m1*100,2),'%') as m3,
+concat (round (m4/m1*100,2), '%')as m4
+from customer_cohort
+--Nhận xét 
+-- Về cơ bản, 1 tháng từ khi người dùng tham gia có được tỉ lệ quay lại của khách hàng cao nhất, nhưng 
+   lại giảm dần cho những tháng tiếp theo. Điều này cho thấy trong vòng 1 tháng khi có khách hàng mới, doanh nghiệp 
+   cần nghiên cứu hành vi tiêu dùng để tiếp tục giữ chân đối tượng này. Nếu không khách hàng quay lại giảm dần.
+-- Dù theo thời gian tỉ lệ quay lại khả quan hơn, nhưng xu hướng vẫn tương đồng, có khả năng khách hàng chỉ tham gia mua sắm cùng 1 
+  đợt khuyến mãi và không quay lại cho đến đơt tiếp theo. 
 
 
