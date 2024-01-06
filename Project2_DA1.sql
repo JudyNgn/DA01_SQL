@@ -154,4 +154,64 @@ GROUP BY
 ORDER BY
   dates, revenue DESC;
 
+II/ 
+--1. Tạo metric trước khi dựng dashboard
+WITH abc AS (
+    SELECT
+        FORMAT_DATE("%Y-%m", o.created_at) AS Month,
+        EXTRACT(YEAR FROM o.created_at) AS Year,
+        p.category AS Product_category,
+        SUM (p.cost) as Total_cost,
+        SUM(oi.sale_price) AS TPV,
+        COUNT(DISTINCT oi.order_id) AS TPO
+    FROM
+        bigquery-public-data.thelook_ecommerce.orders o
+    JOIN
+        bigquery-public-data.thelook_ecommerce.order_items oi ON o.order_id = oi.order_id
+    JOIN
+        bigquery-public-data.thelook_ecommerce.products p ON oi.product_id = p.id
+    GROUP BY
+        FORMAT_DATE("%Y-%m", o.created_at),
+        EXTRACT(YEAR FROM o.created_at),
+        p.category
+),
+xyz AS (
+    SELECT 
+        *,
+        LAG(TPV) OVER (PARTITION BY Product_category ORDER BY Year, Month) AS pre_TPV
+    FROM 
+        abc
+),
+xxx AS (
+    SELECT 
+        *,
+        ROUND(((TPV - pre_TPV) / pre_TPV) * 100, 2) AS Revenue_growth
+    FROM 
+        xyz
+)
+,
+ordergrowth as (
+SELECT 
+        *,
+        LAG(TPO) OVER (PARTITION BY Product_category ORDER BY Year, Month) AS pre_TPO,
+        ROUND(((TPO - LAG(TPO) OVER (PARTITION BY Product_category ORDER BY Year, Month ASC)) / LAG(TPO) OVER (PARTITION BY Product_category ORDER BY Year, Month ASC)) * 100, 2) AS Order_growth
+    FROM 
+        xxx)
+
+select
+Month,
+Year,
+Product_category,
+TPV,
+TPO,
+CONCAT (Revenue_growth,'%') as Revenue_growth,
+CONCAT (Order_growth,'%') as Order_growth,
+Total_cost,
+(TPV-Total_cost) as total_profit,
+((TPV-Total_cost) /total_cost) as Profit_to_cost_ratio
+from 
+ordergrowth
+
+
+
 
